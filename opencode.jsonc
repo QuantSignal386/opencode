@@ -1,0 +1,117 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "shell": "pwsh",
+  "model": "local-llama/swift-qwen-q6",
+  "small_model": "local-llama/swift-qwen-q6",
+  "default_agent": "terra-lead",
+  "provider": {
+    "local-llama": {
+      "name": "Local Swift Qwen via llama.cpp",
+      "npm": "@ai-sdk/openai-compatible",
+      "options": {
+        "baseURL": "http://127.0.0.1:8081/v1",
+        "apiKey": "{env:HERMES_CUSTOM_QWEN_TEST_1_API_KEY}"
+      },
+      "models": {
+        "swift-qwen-q6": {
+          "name": "Swift Qwen 3.8 27B Q6",
+          "modelID": "D:\\AI\\Models\\ukisai\\Swift-Qwen3.8-27B-GGUF\\Swift-Qwen3.8-27B-Q6_K.gguf",
+          "capabilities": {
+            "tools": true,
+            "input": ["text"],
+            "output": ["text"]
+          },
+          "limit": {
+            "context": 65536,
+            "output": 8192
+          }
+        }
+      }
+    }
+  },
+  "permission": {
+    "doom_loop": "deny",
+    "bash": {
+      "*": "allow",
+      "ssh *": "deny",
+      "scp *": "deny",
+      "sftp *": "deny",
+      "docker *": "deny",
+      "podman *": "deny",
+      "sudo *": "deny",
+      "systemctl *": "deny",
+      "mount *": "deny",
+      "umount *": "deny",
+      "fsck *": "deny",
+      "apt *": "deny",
+      "apt-get *": "deny",
+      "brew *": "deny",
+      "winget *": "deny",
+      "choco *": "deny",
+      "npm install *": "ask",
+      "pip install *": "ask",
+      "git push *": "ask",
+      "git reset --hard *": "ask",
+      "Remove-Item *": "ask",
+      "rm *": "ask",
+      "del *": "ask"
+    }
+  },
+  "agent": {
+    "terra-lead": {
+      "description": "Frontier lead for planning, decisions, review, and delegation to the local Swift worker.",
+      "mode": "primary",
+      "model": "opencode/gpt-5.6-terra",
+      "steps": 30,
+      "permission": {
+        "task": {
+          "*": "deny",
+          "swift-worker": "allow"
+        }
+      },
+      "prompt": "You are the lead engineer. Read AGENTS.md first when present. Clarify only material gaps, then state a compact execution contract and proceed. Delegate substantial bounded repository exploration, implementation, or test tasks to swift-worker one at a time; give it the goal, relevant context, constraints, acceptance checks, and a stopping condition. Review its evidence before making decisions. Do not attempt remote access, credentials, SSH, Docker, privileged operations, package installation, service control, mounts, filesystem repair, or destructive recovery. If a task needs those, stop with evidence and the smallest safe next action rather than improvising."
+    },
+    "local-lead": {
+      "description": "Coordinates local repository work and delegates bounded implementation or investigation tasks.",
+      "mode": "primary",
+      "steps": 20,
+      "prompt": "You are the lead for local repository work. Read AGENTS.md first when present. Keep a task bounded, inspect before changing, and delegate substantive repo exploration, implementation, or testing to swift-worker. Treat remote machines and external state as out of scope: do not attempt SSH, Docker, privileged operations, package installs, mounts, service management, or recovery work. Stop with evidence and a concise blocker instead of improvising around a denied tool."
+    },
+    "swift-worker": {
+      "description": "Local Swift Qwen worker for narrow repo exploration, implementation, and test tasks.",
+      "mode": "subagent",
+      "model": "local-llama/swift-qwen-q6",
+      "steps": 16,
+      "permission": {
+        "task": "deny",
+        "doom_loop": "deny",
+        "bash": {
+          "*": "allow",
+          "ssh *": "deny",
+          "scp *": "deny",
+          "sftp *": "deny",
+          "docker *": "deny",
+          "podman *": "deny",
+          "sudo *": "deny",
+          "systemctl *": "deny",
+          "mount *": "deny",
+          "umount *": "deny",
+          "fsck *": "deny",
+          "apt *": "deny",
+          "apt-get *": "deny",
+          "brew *": "deny",
+          "winget *": "deny",
+          "choco *": "deny",
+          "npm install *": "ask",
+          "pip install *": "ask",
+          "git push *": "ask",
+          "git reset --hard *": "ask",
+          "Remove-Item *": "ask",
+          "rm *": "ask",
+          "del *": "ask"
+        }
+      },
+      "prompt": "You are a bounded local coding worker. First read AGENTS.md if it exists. Work only in the current repository. Complete the assigned task using evidence, focused edits, and relevant tests. Do not launch child agents. Do not use or attempt remote access, credentials, SSH, Docker, package installation, privileged commands, service control, mounts, filesystem repair, or destructive recovery. On a denied command, missing prerequisite, or a second materially similar failure, stop and return the blocker, evidence, and the smallest next action."
+    }
+  }
+}
